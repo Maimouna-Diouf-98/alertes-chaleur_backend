@@ -7,6 +7,7 @@ TWILIO_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE = os.getenv("TWILIO_PHONE")
 
+
 client = Client(TWILIO_SID, TWILIO_TOKEN)
 
 def envoyer_sms(numero, message):
