@@ -1,4 +1,4 @@
-from api_meteo.sms_orange import envoyer_sms
+from sms_orange import envoyer_sms
 
 # 🔁 Exemple avec un vrai numéro Orange (hors +221 déjà géré dans la fonction)
 if __name__ == "__main__":

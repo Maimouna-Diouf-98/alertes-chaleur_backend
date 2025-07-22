@@ -24,13 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-wywy0o#68euj8hbtdu-)+()n!=lu%^e=duypkz-_9c61umyzsi'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-ALLOWED_HOSTS = ['*']
+DEBUG = True
 
-ALLOWED_HOSTS = []
-
-CORS_ALLOW_ALL_ORIGINS = True
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -39,16 +34,17 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'rest_framework', 
     'rest_framework_simplejwt',
+    'corsheaders',
     'utilisateurs',
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
+   
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -58,7 +54,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'alert_plateform.urls'
 AUTH_USER_MODEL = 'utilisateurs.Utilisateur'
+ALLOWED_HOSTS = ['*']
 
+CORS_ALLOW_ALL_ORIGINS = True
+# Application definition
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -81,16 +80,16 @@ WSGI_APPLICATION = 'alert_plateform.wsgi.application'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'dbalert', 
-#         'USER': 'root', 
-#         'PASSWORD': 'root',
-#         'HOST': 'localhost', 
-#         'PORT': '3306',
-#     }
-# }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'dbalert', 
+        'USER': 'root', 
+        'PASSWORD': 'root',
+        'HOST': 'localhost', 
+        'PORT': '3306',
+    }
+}
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',

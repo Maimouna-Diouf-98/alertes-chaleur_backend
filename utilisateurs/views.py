@@ -73,10 +73,9 @@ class RegisterAPIView(APIView):
 
 class LoginAPIView(APIView):
     def post(self, request):
-        nom = request.data.get('nom')
+        telephone = request.data.get('telephone')
         password = request.data.get('password')
-        
-        user = authenticate(nom=nom, password=password) 
+        user = authenticate(telephone=telephone, password=password) 
         if user:
             refresh = RefreshToken.for_user(user)
             return Response({
@@ -172,22 +171,31 @@ class AlerteAdminAPIView(APIView):
     def post(self, request):
         admin_user = request.user
         if admin_user.role != 'admin':
-            return Response({'detail': 'Accès refusé. Seuls les administrateurs peuvent envoyer des alertes.'},
-                            status=status.HTTP_403_FORBIDDEN)
+            return Response(
+                {'detail': 'Accès refusé. Seuls les administrateurs peuvent envoyer des alertes.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
         user_ids = request.data.get('user_ids', [])
         localites = request.data.get('localites', [])
 
+        # On commence avec tous les utilisateurs
         users = Utilisateur.objects.all()
+
+        # Filtrage par ID si fourni
         if user_ids:
             users = users.filter(id__in=user_ids)
-        if localites:
+
+        # Sinon filtrage par localité si fourni
+        elif localites:
             users = users.filter(localite__in=localites)
 
         results = []
+
         for user in users:
             ville = user.localite
             data = get_weather_by_city(ville)
+
             if not data or 'main' not in data:
                 results.append({'user': user.id, 'status': 'fail', 'reason': 'Météo non disponible'})
                 continue
@@ -196,8 +204,10 @@ class AlerteAdminAPIView(APIView):
             desc_en = data['weather'][0]['description']
             desc_fr = CONDITIONS_METEO_FR.get(desc_en.lower().strip(), desc_en)
 
-            # Message personnalisé selon profil
+            # Message de base
             message = f"Alerte météo pour {ville} : {desc_fr}, {temp}°C."
+            
+            # Personnalisation selon profil
             age = (date.today() - user.date_naissance).days // 365 if user.date_naissance else None
             sexe = user.sexe
 
@@ -207,12 +217,12 @@ class AlerteAdminAPIView(APIView):
                         message += " Enfant : reste à l'abri et hydrate-toi bien."
                     elif sexe == 'femme' and 15 <= age <= 45:
                         message += " Femmes enceintes : prudence et évitez les efforts."
-                    elif sexe == 'homme' and 15 <= age <= 45:
+                    elif sexe == 'homme' and 15 <= age <= 25:
                         message += " Jeunes hommes : évitez les activités physiques intenses."
                     elif age >= 60:
-                        message += "  Personnes âgées : restez au frais et hydratez-vous."
+                        message += " Personnes âgées : restez au frais et bien hydraté."
             else:
-                message += " ✅ Conditions normales. Restez vigilant."
+                message += " Conditions normales. Restez vigilant."
 
             phone = user.telephone
             if phone:
