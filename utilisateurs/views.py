@@ -9,8 +9,10 @@ from api_meteo.services import get_weather_by_city
 from api_meteo.services import get_forecast_by_city_and_date
 from datetime import date, datetime
 from api_meteo.sms_orange import  envoyer_sms
-from rest_framework.permissions import IsAdminUser
-
+from .models import Notification
+from rest_framework.permissions import IsAuthenticated
+from .serializers import NotificationSerializer
+from rest_framework.generics import ListAPIView
 CONDITIONS_METEO_FR = {
     "clear sky": "ciel dégagé",
     "few clouds": "quelques nuages",
@@ -179,14 +181,9 @@ class AlerteAdminAPIView(APIView):
         user_ids = request.data.get('user_ids', [])
         localites = request.data.get('localites', [])
 
-        # On commence avec tous les utilisateurs
         users = Utilisateur.objects.all()
-
-        # Filtrage par ID si fourni
         if user_ids:
             users = users.filter(id__in=user_ids)
-
-        # Sinon filtrage par localité si fourni
         elif localites:
             users = users.filter(localite__in=localites)
 
@@ -204,10 +201,7 @@ class AlerteAdminAPIView(APIView):
             desc_en = data['weather'][0]['description']
             desc_fr = CONDITIONS_METEO_FR.get(desc_en.lower().strip(), desc_en)
 
-            # Message de base
             message = f"Alerte météo pour {ville} : {desc_fr}, {temp}°C."
-            
-            # Personnalisation selon profil
             age = (date.today() - user.date_naissance).days // 365 if user.date_naissance else None
             sexe = user.sexe
 
@@ -224,11 +218,27 @@ class AlerteAdminAPIView(APIView):
             else:
                 message += " Conditions normales. Restez vigilant."
 
-            phone = user.telephone
-            if phone:
-                success = envoyer_sms(phone, message)
-                results.append({'user': user.id, 'status': 'success' if success else 'fail'})
-            else:
-                results.append({'user': user.id, 'status': 'fail', 'reason': 'Numéro de téléphone manquant'})
+            Notification.objects.create(
+                utilisateur=user,
+                titre="Alerte Météo",
+                contenu=message
+            )
+            results.append({'user': user.id, 'status': 'notification créée'})
 
         return Response({'résultats': results})
+
+class MesNotificationsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifications = Notification.objects.filter(utilisateur=request.user).order_by('-date_envoi')
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
+
+
+class UserNotificationsView(ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return self.request.user.notifications.order_by('-date_envoi')

@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RegisterAPIView, LoginAPIView, ListeUtilisateursAPIView,MeteoVigilanceAPIView, MeteoPersonnaliseeAPIView, AlerteAdminAPIView
+from .views import RegisterAPIView, LoginAPIView, ListeUtilisateursAPIView,MeteoVigilanceAPIView, MeteoPersonnaliseeAPIView, AlerteAdminAPIView, MesNotificationsAPIView, UserNotificationsView
 
 
 urlpatterns = [
@@ -11,5 +11,7 @@ urlpatterns = [
     path('meteo-vigilance/', MeteoVigilanceAPIView.as_view()),
     path('meteo-prevision/', MeteoPersonnaliseeAPIView.as_view()),
     path('alerte/', AlerteAdminAPIView.as_view(),),
+    path('notifications/', MesNotificationsAPIView.as_view()),
+    path('usenotif/', UserNotificationsView.as_view()),
 ]
 

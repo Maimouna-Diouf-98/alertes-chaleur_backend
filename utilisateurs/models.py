@@ -60,3 +60,13 @@ class Utilisateur(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.nom} {self.prenom} ({self.role})"
+        
+class Notification(models.Model):
+    utilisateur = models.ForeignKey(Utilisateur, on_delete=models.CASCADE, related_name='notifications')
+    titre = models.CharField(max_length=255)
+    contenu = models.TextField()
+    lu = models.BooleanField(default=False)
+    date_envoi = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.titre} - {self.utilisateur.nom}"
